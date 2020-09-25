@@ -11,5 +11,5 @@ while True:
 	coord_slave = (slave.location.global_frame.lat,
 			slave.location.global_frame.lon)
 	dist = haversine(coord_master, coord_slave, unit='m')
-	print("Distance : " + str(dist))
+	print("\rDistance : " + str(dist),sep='', end='', flush=True)
 	time.sleep(1)
