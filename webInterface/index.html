@@ -1,0 +1,116 @@
+<!--
+   index.html
+   
+   Copyright 2020 Tristan D <tristan@Tristan-PC>
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301, USA.
+   
+   
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+	<head>
+		<title>Drone Swarm WebInterface</title>
+		<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+		<meta name="generator" content="Geany 1.36" />
+		<link rel="stylesheet" href="style/style.css">
+		<script src="script/Screen.js" type="text/javascript"></script>
+		<script src="script/WS.js" type="text/javascript"></script>
+		
+		<link rel="stylesheet" href="lib/leaflet/leaflet.css">
+		<script src="lib/leaflet/leaflet.js" type="text/javascript"></script>
+		
+	</head>
+
+	<body>
+		<div id="ctl_panel" class="screen">
+			<h1>Drone Swarm Projet</h1>
+			<h2>Interface Web</h2>
+			<table class="tg" id="table">
+				  <tr>
+					<th class="tg-1wig">Version </th>
+					<th class="tg-0lax" id="vers">undefinned</th>
+					<th class="tg-1wig">Mission Status</th>
+					<th class="tg-0lax" id="missionStat">undefinned</th>
+				  </tr>
+				  <tr>
+					<td class="tg-1wig">Battery status</td>
+					<td class="tg-0lax" id="batStat">undefinned<br></td>
+					<td class="tg-1wig">Définir mission</td>
+					<td class="tg-0lax"><button type="button" onclick="screen_handler.change_screen(screen_mission);">Mission</button></td>
+				  </tr>
+				  <tr>
+					<td class="tg-1wig">Nombre de slaves</td>
+					<td class="tg-0lax" id="slaveNbr">0</td>
+					<td class="tg-1wig">Démarer mission</td>
+					<td class="tg-0lax"><button type="button" onclick="screen_panel.cparti();">C'est parti</button></td>
+				  </tr>
+			</table>
+			<canvas class="view" height="200" width="500" id="canvasOverView">
+			</canvas>
+			<div class="pageSw">
+				<button type="button" onclick="screen_handler.change_screen(screen_slave);">Slave config</button>
+				<button type="button" onclick="screen_handler.change_screen(screen_info);" >Info</button>
+			</div>
+		</div>
+		<div id="add_slave" class="screen">
+			<div class="cmd">
+				<span>
+				<input class="coord" type="number" id="relX" placeholder="">
+				<input class="coord" type="number" id="relY" placeholder="">
+				<input class="coord" type="number" id="relZ" placeholder="">
+				
+				</span>
+				<input type="number" id="idMav" placeholder="MavLink ID">
+				<button type="button" onclick="screen_mission.addPt()"> Ajouter Slave</button>
+				
+				<button type="button" onclick="screen_handler.change_screen(screen_panel);" class="pageSw"> Back to panel</button>
+			</div>
+			<canvas class="view" height="200" width="500" id="canvasConfView">
+			
+			<button type="button" onclick="screen_handler.change_screen(screen_panel);" class="pageSw"> Back to panel</button>
+		</div>
+		<div id="mission" class="screen">
+			<div id="map"></div>
+			<div class="cmd">
+				<span>
+				<input class="coord" type="number" id="lonP" placeholder="Longitude">
+				<input class="coord" type="number" id="latP" placeholder="Latitude">
+				<input class="coord" type="number" id="altP" placeholder="Altitude">
+				
+				</span>
+				<button type="button" onclick="screen_mission.addPt()"> Ajouter Point</button>
+				<button type="button" onclick=""> Valider Mission</button>
+				
+				<button type="button" onclick="screen_handler.change_screen(screen_panel);" class="pageSw"> Back to panel</button>
+			</div>
+		</div>
+		<div id="info" class="screen">
+			<h1>Informations</h1>
+			<p>Projet de spécialité S-IoT de l'INSA Strasbourg.</p>
+			<p>Interface de controle du drone <i>Master</i></p>
+			<p>Projet sous licence XXXXXX sur base de Ardupilot, Python3 DroneKit et Python3 Websocket</p>
+			<p>Interface inspirée du projet suivant: <a href="https://github.com/mdl29/tidutyzef">Github</a></p>
+			<p>Toutes les sources du projet sont disponibles ici: <a href="https://github.com/tristanplouz/ProjetSwarmRobotGE5">Github</a></p>
+			<button type="button" onclick="screen_handler.change_screen(screen_panel);" class="pageSw"> Back to panel</button>
+		</div>
+		<script src="script/main.js" type="text/javascript"></script>
+	</body>
+
+</html>
