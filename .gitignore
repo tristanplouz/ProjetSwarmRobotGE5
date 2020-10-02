@@ -1,1 +1,17 @@
 __pycache__
+
+# LaTeX Compilation #
+#####################
+*.aux
+*.bak
+*.bbl
+*.blg
+*.listing
+*.lof
+*.log
+*.out
+*.pdf
+*.synctex.gz
+*.toc
+
+
