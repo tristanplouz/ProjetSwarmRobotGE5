@@ -1,0 +1,30 @@
+        slave = connect('/dev/ttyUSB0',baud=56700,wait_ready=False)
+        master = connect('/dev/ttyACM0',baud=56700,wait_ready=False)
+
+import asyncio
+import websockets
+import time
+import json
+
+slave = connect('/dev/ttyUSB0',baud=56700,wait_ready=False)
+master = connect('/dev/ttyACM0',baud=56700,wait_ready=False)
+
+async def processus(websocket, path):
+    message = await websocket.recv()
+    print(message)
+    while True:
+	    await bat(websocket)
+
+async def bat(websocket):
+    message = {
+        "type": "version",
+	"ctn" : master.version
+    }
+    y = json.dumps(message)
+    await websocket.send(y)
+    time.sleep(2)
+
+start_server = websockets.serve(processus, "localhost", 8765)
+
+asyncio.get_event_loop().run_until_complete(start_server)
+asyncio.get_event_loop().run_forever()
