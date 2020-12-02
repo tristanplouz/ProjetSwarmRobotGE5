@@ -27,9 +27,14 @@ function WS(){
 	}
 	this.recv =function(evt){
 		console.log(evt);
-		switch(evt.type){
+        var msg = JSON.parse(evt.data);
+        console.log(msg.type);
+        console.log(msg.ctn);
+		switch(msg.type){
+            case "version":
+                screen_panel.update("vers","Version:\n"+msg.ctn);
 			default:
-				console.log("msg inconnu: "+evt.type);
+				console.log("msg inconnu: "+msg);
 			}
 	}
 }

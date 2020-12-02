@@ -9,7 +9,7 @@ screen_handler.change_screen(screen_panel);
 screen_panel.updateView();
 
 var socket_handler = new WS();
-//socket_handler.connect("localhost",8765);
+socket_handler.connect("172.20.10.6",8765);
 
 window.onbeforeunload = function(){
 		socket_handler.close(1000,"reload")
