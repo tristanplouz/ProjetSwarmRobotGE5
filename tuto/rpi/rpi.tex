@@ -15,6 +15,9 @@
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 
+\usepackage[ddmmyyyy]{datetime}
+\renewcommand{\dateseparator}{/}
+
 \usepackage{listings}
 \usepackage{tcolorbox}
 \tcbuselibrary{listings}
@@ -30,7 +33,7 @@
 	}
 }
 
-\fancyhead[L]{\today}
+\fancyhead[L]{Version du 26/09/2020,\\ modifié le \today}
 \fancyhead[C]{\textit{Premiers pas avec Raspberry Pi}}
 \fancyhead[R]{Swarm Drone Flight}
 \fancyfoot[L]{Florian Pouthier}
@@ -142,25 +145,29 @@ disponibles à cette adresse :
 \vspace{-0.5em}
 
 \textit{Si vous êtes déjà familier avec les environnements Linux, vous 
-verrez que la plupart des commandes sont semblables à celles utilisées 
+verrez que la plupart des commandes sont celles utilisées 
 dans un terminal Linux.}
 
 \begin{enumerate}
 	\item\textbf{Premier login.} Une fois le micro-ordinateur sous tension, 
 	vous verrez à l'écran le démarrage de tous les services du RPi. 
 	Une fois tous les services chargés, vous serez invités à renseigner un 
-	login et un mot de passe.
+	login et un mot de passe. Les logins par défaut sont:
 	
 	\textbf{raspberrypi login:} \texttt{pi}
 
 	\textbf{Password:} \texttt{raspberry}
-
+	Il peut s'agir d'un grave problème sécurité pour une application sensible, 
+	en effet, en conservant les informations par défaut, tout le monde peut les 
+	utiliser pour se connecter. Il faut donc penser à les changer. Cela peut se 
+	faire en utilisant la commande \texttt{raspi-config}, vue plus loin, et le 
+	menu \texttt{change\_pass}.
 	Le clavier étant par défaut paramétré en QWERTY, la tentative de connexion 
 	devrait échouer. En effet, il faudra saisir \texttt{rqspberry} pour pouvoir 
 	réussir à se logger.
 	
 	\item\textbf{Changer le clavier en AZERTY.} On va tout de suite régler 
-	ce problème de clavier pour terminer serainement le tuto. 
+	ce problème de clavier pour terminer sereinement le tuto. 
 	Taper la commande suivante pour accéder au menu de configuration du RPi :
 	
 \begin{commandshell}
@@ -195,7 +202,7 @@ sudo raspi-config
 	Vous revenez finalement au menu principal de configuration.
 	
 	\item\textbf{Configurer le Wi-Fi.} Si vous n'avez pas de connexion
-	ethernet, vous devez configurer une connexion au réseau Wi-Fi pour
+	filaire, vous devez configurer une connexion au réseau Wi-Fi pour
 	pouvoir accéder à internet. Pour cela, toujours dans le menu de
 	configuration, sélectionner successivement :
 
@@ -228,7 +235,7 @@ sudo raspi-config
 sudo reboot
 \end{commandshell}	
 
-	Ressaisir finalement le login \texttt{pi} et le mot de passe \texttt{raspberry}. 
+	Ressaisir finalement le login \texttt{pi} et le mot de passe \texttt{raspberry} ou votre nouveau mot de passe. 
 \end{enumerate}
 
 \section{Installation des packages}
@@ -253,17 +260,17 @@ ping google.fr
 	Arrêter le processus avec \textbf{Ctrl} + \textbf{C}.
 	
 	\item\textbf{Mettre à jour l'OS.} Afin d'obtenir la dernière version
-	de l'OS, saisir :
+	de l'OS et des paquets logiciels, saisir :
 	
 \begin{commandshell}
-sudo apt-get upgrade
+sudo apt update && sudo apt upgrade
 \end{commandshell}
 	
 	Un message demandant si vous autorisez le téléchargement de paquets
 	devrait également apparaître, valider en appuyant \textbf{ENTER}.
 	
-	\item\textbf{Installer GitHub}. Installer \texttt{GitHub} pour le 
-	versionning des codes utilisés en saisissant :
+	\item\textbf{Installer le gestionnaire de version}. Installer \texttt{Git} pour le 
+	\textit{versionning} des codes utilisés en saisissant :
 	
 \begin{commandshell}
 sudo apt-get install git
@@ -277,19 +284,41 @@ sudo apt-get install python3
 \end{commandshell}
 
 	\item\textbf{Charger l'installateur de paquets Python 3}. 
-	L'installateur de paquets \texttt{Python 3} peut être chargé avec :
+	L'installateur de paquets \texttt{Python 3} peut être installé avec :
 	
 \begin{commandshell}
 sudo apt-get install python3-pip
 \end{commandshell}
+  	\item\textbf{Installer le module de communication Série}
+  	Afin de pouvoir communiquer sur une liaison série, avec le module \texttt{DroneKit},
+  	il faut installer le module python adéquat:
+  	\begin{commandshell}
+sudo apt-get install python3-serial
+\end{commandshell}
 
-	\item\textbf{Installer le paquet \texttt{dronekit}}. 
-	Le paquet \texttt{dronekit} permet la communication avec un
+	On peut installer tous les dépendances nécessaire en une commande:
+\begin{commandshell}
+sudo apt update && sudo apt upgrade && sudo apt-get install git python3 python3-pip python3-serial
+\end{commandshell}
+
+	\item\textbf{Installer le module \texttt{dronekit}}. 
+	Le module python \texttt{dronekit} permet la communication avec un
 	contrôleur de vol (un \textit{Pixhawk} par exemple) en 
 	utilisant un protocole MAVLink.
 	
 \begin{commandshell}
 pip3 install dronekit
+\end{commandshell}
+\end{enumerate}
+
+\section{Premiers tests}
+\begin{enumerate}
+
+	\item\textbf{Cloner le dépot de code}.
+	Maintenant que toutes les dépendances sont installées, on peut charger les différents codes nécessaire.
+	Pour cela, on va cloner le dépot \texttt{github} associé au projet avec tous les codes.
+\begin{commandshell}
+git clone https://github.com/tristanplouz/ProjetSwarmRobotGE5.git
 \end{commandshell}
 \end{enumerate}
 

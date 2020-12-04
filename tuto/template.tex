@@ -1,0 +1,64 @@
+\documentclass[a4paper, 10pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+
+\usepackage[top=20mm, bottom=20mm, left=10mm, right=10mm]{geometry}
+
+\usepackage{hyperref}
+
+\usepackage{mathpazo}
+\usepackage{xcolor}
+\definecolor{raspberry}{rgb}{0.737,0.067,0.259}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\usepackage[ddmmyyyy]{datetime}
+\renewcommand{\dateseparator}{/}
+
+\usepackage{listings}
+\usepackage{tcolorbox}
+\tcbuselibrary{listings}
+
+\newtcblisting{commandshell}{
+	colback=black,
+	colupper=white,
+	colframe=orange!75!white,
+	listing only,
+	listing options={style=tcblatex,language=sh},
+	every listing line={
+		\textcolor{green}{\small\ttfamily\bfseries pi@raspberrypi}:\textcolor{blue}{\small\ttfamily\bfseries \~\ \$\ }
+	}
+}
+
+\fancyhead[L]{Version du XXXXXXXX,\\ modifié le \today}
+\fancyhead[C]{\textit{XXXXXX}}
+\fancyhead[R]{Swarm Drone Flight}
+\fancyfoot[L]{XXXXXXXX}
+\fancyfoot[R]{\jobname.pdf}
+\headheight = 15pt
+
+\begin{document}
+
+\begin{center}
+\LARGE{\textbf{XXXX}}
+\end{center}
+
+%INTRODUCTION
+
+\section{}
+
+%intro
+
+\begin{enumerate}
+	\item\textbf{%Tache}%detail
+	
+	
+\begin{commandshell}
+%command shell
+\end{commandshell}
+\end{enumerate}
+
+\end{document}
