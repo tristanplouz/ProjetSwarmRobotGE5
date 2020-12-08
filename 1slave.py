@@ -38,7 +38,7 @@ print("Master: "+str(master.location.global_frame.lat)+" "+str(master.location.g
 
 if(slave.gps_0.fix_type>2):
     master.mode = dronekit.VehicleMode("MANUAL")
-    slave.mode = dronekit.VehicleMode("GUIDED")
+    slave.mode = dronekit.VehicleMode("HOLD")
 else:
     print("No 3D fix")
     slave.disarm()
@@ -53,11 +53,12 @@ ts=1
 gs=2
 
 while master.gps_0.satellites_visible < 17 or slave.gps_0.satellites_visible < 17 :
-    print("Number of satellites unsatisfied : " + str(master.gps_0.satellites_visible))
+    print("Number of satellites unsatisfied : Master " 
+        + str(master.gps_0.satellites_visible) + " - Slave "
+        + str(slave.gps_0.satellites_visible))
     time.sleep(2)
 
 input("Good satellites. Let's go ?")
-
 while 1:
     lat=master.location.global_frame.lat
     lon=master.location.global_frame.lon
@@ -66,5 +67,13 @@ while 1:
     veloc = sqrt(vx**2+vy**2+vz**2)
     print("Velocity : " + str(veloc))
     if veloc > 1 :
+        first_stop = False
+        slave.mode = dronekit.VehicleMode("GUIDED")
         slave.simple_goto(getSlavePos(lat,lon,d,theta+bearing),groundspeed=gs)
+    else :
+        if !first_stop :
+            first_stop = True
+            slave.simple_goto(getSlavePos(lat,lon,d,theta+bearing),groundspeed=gs)
+        else :
+            slave.mode = dronekit.VehicleMode("HOLD")
     time.sleep(ts)
