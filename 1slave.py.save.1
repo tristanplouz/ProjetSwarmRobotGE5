@@ -4,6 +4,7 @@ import sys
 from math import *
 
 def getSlavePos(lat_org,lon_org,d=2,teta=180):
+	#implement other hemisphere work
     R=6371009
     teta*=pi/180
     lat_org*=pi/180
@@ -22,7 +23,7 @@ print("Slave: "+str(slave.version))
 
 print("Connection au master....")
 master = dronekit.connect("/dev/ttyACM0",baud=56700)
-time.sleep(5)
+time.sleep(3)
 print("Master: "+str(master.version))
 
 rep = input("Armer le slave (Yes/No)")
@@ -47,24 +48,13 @@ else:
     master.close()
     sys.exit()
 
-d=0.5
-theta=180
-ts=1
-gs=2
-
-while master.gps_0.satellites_visible < 17 or slave.gps_0.satellites_visible < 17 :
-    print("Number of satellites unsatisfied : " + str(master.gps_0.satellites_visible))
-    time.sleep(2)
-
-input("Good satellites. Let's go ?")
-
+dis=2
+tet = 180
+ts=5
 while 1:
+#    input("Run slave")
     lat=master.location.global_frame.lat
     lon=master.location.global_frame.lon
     bearing = master.heading
-    vx,vy,vz = master.velocity
-    veloc = sqrt(vx**2+vy**2+vz**2)
-    print("Velocity : " + str(veloc))
-    if veloc > 1 :
-        slave.simple_goto(getSlavePos(lat,lon,d,theta+bearing),groundspeed=gs)
+    slave.simple_goto(getSlavePos(lat,lon,dis,180+tet),groundspeed=0.5)
     time.sleep(ts)
