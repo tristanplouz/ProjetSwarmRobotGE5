@@ -131,8 +131,8 @@ while 1:
     latS = slave.location.global_frame.lat
     lonS = slave.location.global_frame.lon
     
-    dact = haversineDistance(latM,lonM,latS,latS)
-    print(dact)
+    dact = haversineDistance(latM,lonM,latS,lonS)
+    
     vslaveL = vslave 
     
     print("Controller")
@@ -148,7 +148,7 @@ while 1:
     masterPos = ts*(velocL+veloc)/2
     
     print("Velocity : " + str(veloc))
-    if veloc > 1 :
+    if veloc > 0.5 :
         first_stop = False
         print("Let's go")
         slave.mode = dronekit.VehicleMode("GUIDED")
@@ -157,7 +157,10 @@ while 1:
         print("SAFE STOP")
         if not first_stop :
             first_stop = True
+<<<<<<< HEAD
             print("Let's go")
+=======
+>>>>>>> ceeac43741e6235ce1a15ced813f9082765701b0
             slave.simple_goto(destinationPoint(latM,lonM,masterPos-slavePos,theta+bearing),groundspeed=vmax)
         else :
             print("HOLD")
