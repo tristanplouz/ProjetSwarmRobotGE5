@@ -48,7 +48,7 @@ def haversineDistance(lat1,lon1,lat2,lon2):
     
     a = sin(dlat/2)**2+cos(lat1)*cos(lat2)*(sin(dlon/2))**2
     d = 2 * R *asin(sqrt(a))
-    
+    print("have: "+str(d))
     #theta = atan2(cos(lat2)*sin(dlon),cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(dlon)
     #theta *= 180/pi
     return d
@@ -110,7 +110,7 @@ print("Master: "+str(master.location.global_frame.lat)+" "+str(master.location.g
 d=2
 theta=180
 ts=0.2
-vmax=0.5
+vmax=1.5
 vslave = 0 
 veloc = 0
 first_stop = False
@@ -122,9 +122,10 @@ while master.gps_0.satellites_visible < 17 or slave.gps_0.satellites_visible < 1
     time.sleep(2)
 
 input("Good satellites. Let's go ?")
+master.mode = dronekit.VehicleMode("MANUAL")
 
 while 1:
-    print("Get info")
+    #print("Get info")
     latM=master.location.global_frame.lat
     lonM=master.location.global_frame.lon
     
@@ -135,7 +136,7 @@ while 1:
     
     vslaveL = vslave 
     
-    print("Controller")
+    #print("Controller")
     vslave = controller(dact,d,vmax)
     
     slavePos = ts*(vslaveL+vslave)/2
@@ -147,19 +148,19 @@ while 1:
     
     masterPos = ts*(velocL+veloc)/2
     
-    print("Velocity : " + str(veloc))
+    #print("Velocity : " + str(veloc))
     if veloc > 0.5 :
         first_stop = False
-        print("Let's go")
+       # print("Let's go")
         slave.mode = dronekit.VehicleMode("GUIDED")
         slave.simple_goto(destinationPoint(latM,lonM,masterPos-slavePos,theta+bearing),groundspeed=vmax)
     else :
         print("SAFE STOP")
         if not first_stop :
             first_stop = True
-            print("Let's go")
+     #       print("Let's go")
             slave.simple_goto(destinationPoint(latM,lonM,masterPos-slavePos,theta+bearing),groundspeed=vmax)
         else :
-            print("HOLD")
+      #      print("HOLD")
             slave.mode = dronekit.VehicleMode("HOLD")
     time.sleep(ts)
