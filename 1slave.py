@@ -157,10 +157,7 @@ while 1:
         print("SAFE STOP")
         if not first_stop :
             first_stop = True
-<<<<<<< HEAD
             print("Let's go")
-=======
->>>>>>> ceeac43741e6235ce1a15ced813f9082765701b0
             slave.simple_goto(destinationPoint(latM,lonM,masterPos-slavePos,theta+bearing),groundspeed=vmax)
         else :
             print("HOLD")
