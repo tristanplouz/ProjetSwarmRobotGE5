@@ -7,14 +7,19 @@ from math import *
 
 def failsafe():
     "Methode permettant de mettre en securité les buggys"
+    print("Deconnection")
     slave.groundspeed = 0
     master.groundspeed = 0
+    print("Groundspeed = 0")
     slave.mode = dronekit.VehicleMode("HOLD")
     master.mode = dronekit.VehicleMode("HOLD")
-    slave.disarm()
-    master.disarm()
+    print("HOLD")
+#    slave.disarm()
+#    master.disarm()
+#    print("Disarm")
     slave.close()
     master.close()
+    print("Goodbye")
     
 
 def destinationPoint(lat_org,lon_org,d=2,teta=180):
@@ -44,8 +49,8 @@ def haversineDistance(lat1,lon1,lat2,lon2):
     a = sin(dlat/2)**2+cos(lat1)*cos(lat2)*(sin(dlon/2))**2
     d = 2 * R *asin(sqrt(a))
     
-    theta = atan2(cos(lat2)*sin(dlon),cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(dlon)
-    theta *= 180/pi
+    #theta = atan2(cos(lat2)*sin(dlon),cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(dlon)
+    #theta *= 180/pi
     return d
     
 def controller(dact,dobj,vmax):
@@ -62,7 +67,7 @@ def controller(dact,dobj,vmax):
     
     if(delta>0):
         vlim = vmax*dact/abs(dact)
-    elif(delta = 0)
+    elif(delta == 0):
         vlim=0
     else:
         vlim = -vmax*dact/abs(dact)
@@ -85,20 +90,22 @@ print("Master: "+str(master.version))
 rep = input("Armer le slave (Yes/No)")
 if(rep=="Y" or rep=="y"):
     slave.arm()
+    slave.mode = dronekit.VehicleMode("HOLD")
     
 rep = input("Armer le master (Yes/No)")
 if(rep=="Y" or rep=="y"):
     master.arm()
+    master.mode = dronekit.VehicleMode("MANUAL")
     
 print("Slave: "+str(master.location.global_frame.lat)+" "+str(master.location.global_frame.lon)+" ")
 print("Master: "+str(master.location.global_frame.lat)+" "+str(master.location.global_frame.lon)+" ")
 
-if(slave.gps_0.fix_type>2):
-    master.mode = dronekit.VehicleMode("MANUAL")
-    slave.mode = dronekit.VehicleMode("HOLD")
-else:
-    print("No 3D fix")
-    sys.exit()
+#if(slave.gps_0.fix_type>2):
+#    master.mode = dronekit.VehicleMode("MANUAL")
+#    slave.mode = dronekit.VehicleMode("HOLD")
+#else:
+#    print("No 3D fix")
+#    sys.exit()
 
 d=0.5
 theta=180
@@ -106,6 +113,7 @@ ts=0.5
 vmax=2
 vslave = 0 
 veloc = 0
+first_stop = False
 
 while master.gps_0.satellites_visible < 17 or slave.gps_0.satellites_visible < 17 :
     print("Number of satellites unsatisfied : Master " 
@@ -142,7 +150,7 @@ while 1:
         slave.mode = dronekit.VehicleMode("GUIDED")
         slave.simple_goto(destinationPoint(lat,lon,masterPos-slavePos,theta+bearing),groundspeed=vmax)
     else :
-        if !first_stop :
+        if not first_stop :
             first_stop = True
             slave.simple_goto(destinationPoint(lat,lon,masterPos-slavePos,theta+bearing),groundspeed=vmax)
         else :
