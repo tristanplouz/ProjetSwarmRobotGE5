@@ -107,7 +107,7 @@ print("Master: "+str(master.location.global_frame.lat)+" "+str(master.location.g
 #    print("No 3D fix")
 #    sys.exit()
 
-d=0.5
+d=2
 theta=180
 ts=0.5
 vmax=2
@@ -129,7 +129,7 @@ while 1:
     latS = slave.location.global_frame.lat
     lonS = slave.location.global_frame.lon
     
-    dact = haversineDistance(latM,lonM,latS,latS)
+    dact = haversineDistance(latM,lonM,latS,lonS)
     
     vslaveL = vslave 
     
@@ -145,14 +145,14 @@ while 1:
     masterPos = ts*(velocL+veloc)/2
     
     print("Velocity : " + str(veloc))
-    if veloc > 1 :
+    if veloc > 0.5 :
         first_stop = False
         slave.mode = dronekit.VehicleMode("GUIDED")
-        slave.simple_goto(destinationPoint(lat,lon,masterPos-slavePos,theta+bearing),groundspeed=vmax)
+        slave.simple_goto(destinationPoint(latM,lonM,masterPos-slavePos,theta+bearing),groundspeed=vmax)
     else :
         if not first_stop :
             first_stop = True
-            slave.simple_goto(destinationPoint(lat,lon,masterPos-slavePos,theta+bearing),groundspeed=vmax)
+            slave.simple_goto(destinationPoint(latM,lonM,masterPos-slavePos,theta+bearing),groundspeed=vmax)
         else :
             slave.mode = dronekit.VehicleMode("HOLD")
     time.sleep(ts)
