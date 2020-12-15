@@ -21,7 +21,6 @@ def failsafe():
     master.close()
     print("Goodbye")
     
-
 def destinationPoint(lat_org,lon_org,d=2,teta=180):
     "Methode permettant de calculer une position gps a partir d'une position GPS d'une distance et d'un cap"
     R=6371009
@@ -53,28 +52,40 @@ def haversineDistance(lat1,lon1,lat2,lon2):
     #theta *= 180/pi
     return d
     
-def controller(dact,dobj,vmax):
+def controllerVit(dact,dobj,vmast):
     "Loopback system to control the system"
-    epsilon = 0.1
-    delta = dact-dobj
-    
-    if(abs(delta)<epsilon):
+    rap = (dact-dobj)/dobj
+    vmax=4
+
+    if(rap<0 and rap>-0.05):
+        beta = 4*rap+1
+    elif(rap >= 0 and rap < 0.05):
+        beta = 1
+    elif(rap >= 0.05 and rap < 2.5):
+        beta = 0.2/245*rap-(244/255)
+    else:
         beta = 0
-    elif(epsilon<=abs(delta) and abs(delta)<2*epsilon):
-        beta = (abs(delta)-epsilon)/epsilon
+    
+    vit=beta*vmast
+    
+    if(vit>vmax):
+       vit = vmax
+
+    return vit
+    
+def controllerDis(dact,dobj):
+    rap = (dact-dobj)/dobj
+    
+    if(rap<0 and rap>-0.05):
+        beta = 5*abs(rap)+1
+    elif(rap >= 0 and rap < 0.05):
+        beta = 1
+    elif(rap >= 0.05 and rap < 2.5):
+        beta = 0.5/245*rap-(244/255)
     else:
         beta = 1
     
-    if(delta>0):
-        vlim = vmax*dact/abs(dact)
-    elif(delta == 0):
-        vlim=0
-    else:
-        vlim = -vmax*dact/abs(dact)
-    
-    return beta*vlim
-    
-    
+    return beta*dobj
 atexit.register(failsafe)
 
 print("Connection au slave....")
@@ -111,7 +122,6 @@ d=2
 theta=180
 ts=0.2
 vmax=1.5
-vslave = 0 
 veloc = 0
 first_stop = False
 
@@ -137,23 +147,19 @@ while 1:
     vslaveL = vslave 
     
     #print("Controller")
-    vslave = controller(dact,d,vmax)
-    
-    slavePos = ts*(vslaveL+vslave)/2
-    
     bearing = master.heading
     vx,vy,vz = master.velocity
     velocL = veloc
     veloc = sqrt(vx**2+vy**2+vz**2)
-    
-    masterPos = ts*(velocL+veloc)/2
     
     #print("Velocity : " + str(veloc))
     if veloc > 0.5 :
         first_stop = False
         print("Let's go")
         slave.mode = dronekit.VehicleMode("GUIDED")
-        slave.simple_goto(destinationPoint(latM,lonM,masterPos-slavePos,theta+bearing),groundspeed=vmax)
+        slave.groundspeed=controllerVit(dact,d,v_mast)
+        
+        slave.simple_goto(destinationPoint(latM,lonM,masterPos-slavePos,theta+bearing))
     else :
         print("SAFE STOP")
         if not first_stop :
