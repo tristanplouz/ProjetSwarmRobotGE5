@@ -18,11 +18,14 @@ def connect()
 async def processus(websocket, path):
     message = await websocket.recv()
     print(message)
-    latM,lonM,headM = master.location.global_frame.lat,master.location.global_frame.lon,master.heading
-    latS,lonS,headS = slave.location.global_frame.lat,slave.location.global_frame.lon,slave.heading
+    
     while True:
+        latM,lonM,headM = master.location.global_frame.lat,master.location.global_frame.lon,master.heading
+        latS,lonS,headS = slave.location.global_frame.lat,slave.location.global_frame.lon,slave.heading
+        print("master "+headM)
+        print("slave "+headS)
         await websocket.send('{"type":"masterP","lat":'+str(latM)+',"lon":'+str(lonM)+',"head":'+str(headM)+'}')
-        await websocket.send('{"type":"slaveS","lat":'+str(latS)+',"lon":'+str(lonS)+',"head":'+str(headS)+'}')
+        await websocket.send('{"type":"slaveP","lat":'+str(latS)+',"lon":'+str(lonS)+',"head":'+str(headS)+'}')
         time.sleep(5)
 
 slave,master = connect()
