@@ -2,6 +2,7 @@ import dronekit
 import time
 import sys
 import atexit
+import statistics
 from math import *
 
 
@@ -86,6 +87,7 @@ def controllerDis(dact,dobj):
         beta = 1
     
     return beta*dobj
+    
 atexit.register(failsafe)
 
 print("Connection au slave....")
@@ -123,6 +125,7 @@ theta=180
 ts=0.2
 vmax=1.5
 veloc = 0
+masterSpeed=[0,0,0]
 first_stop = False
 
 while master.gps_0.satellites_visible < 17 or slave.gps_0.satellites_visible < 17 :
@@ -144,28 +147,29 @@ while 1:
     
     dact = haversineDistance(latM,lonM,latS,lonS)
     
-    vslaveL = vslave 
-    
     #print("Controller")
     bearing = master.heading
     vx,vy,vz = master.velocity
     velocL = veloc
     veloc = sqrt(vx**2+vy**2+vz**2)
-    
+    masterSpeed.pop()
+    masterSpeed.insert(0,veloc)
     #print("Velocity : " + str(veloc))
     if veloc > 0.5 :
         first_stop = False
         print("Let's go")
         slave.mode = dronekit.VehicleMode("GUIDED")
-        slave.groundspeed=controllerVit(dact,d,v_mast)
-        
-        slave.simple_goto(destinationPoint(latM,lonM,masterPos-slavePos,theta+bearing))
+        slave.groundspeed=controllerVit(dact,d,statistics.mean(masterSpeed))
+        targ = controllerDis(dact,d)
+        slave.simple_goto(destinationPoint(latM,lonM,targ,theta+bearing))
     else :
         print("SAFE STOP")
         if not first_stop :
             first_stop = True
      #       print("Let's go")
-            slave.simple_goto(destinationPoint(latM,lonM,masterPos-slavePos,theta+bearing),groundspeed=vmax)
+            slave.groundspeed=controllerVit(dact,d,v_mast)
+            targ = controllerDis(dact,d)
+            slave.simple_goto(destinationPoint(latM,lonM,targ,theta+bearing))
         else :
       #      print("HOLD")
             time.sleep(ts)
