@@ -52,29 +52,7 @@ def haversineDistance(lat1,lon1,lat2,lon2):
     #theta = atan2(cos(lat2)*sin(dlon),cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(dlon)
     #theta *= 180/pi
     return d
-    
-def controller(dact,dobj,vmax):
-    "Loopback system to control the system"
-    epsilon = 0.1
-    delta = dact-dobj
-    
-    if(abs(delta)<epsilon):
-        beta = 0
-    elif(epsilon<=abs(delta) and abs(delta)<2*epsilon):
-        beta = (abs(delta)-epsilon)/epsilon
-    else:
-        beta = 1
-    
-    if(delta>0):
-        vlim = vmax*dact/abs(dact)
-    elif(delta == 0):
-        vlim=0
-    else:
-        vlim = -vmax*dact/abs(dact)
-    
-    return beta*vlim
-    
-    
+
 atexit.register(failsafe)
 
 print("Connection au slave....")
@@ -111,7 +89,6 @@ d=2
 theta=180
 ts=0.2
 vmax=1.5
-vslave = 0 
 veloc = 0
 first_stop = False
 
@@ -133,33 +110,20 @@ while 1:
     lonS = slave.location.global_frame.lon
     
     dact = haversineDistance(latM,lonM,latS,lonS)
-    
-    vslaveL = vslave 
-    
-    #print("Controller")
-    vslave = controller(dact,d,vmax)
-    
-    slavePos = ts*(vslaveL+vslave)/2
-    
+
     bearing = master.heading
-    vx,vy,vz = master.velocity
-    velocL = veloc
-    veloc = sqrt(vx**2+vy**2+vz**2)
-    
-    masterPos = ts*(velocL+veloc)/2
-    
-    #print("Velocity : " + str(veloc))
+
     if veloc > 0.5 :
         first_stop = False
-        print("Let's go")
+       # print("Let's go")
         slave.mode = dronekit.VehicleMode("GUIDED")
-        slave.simple_goto(destinationPoint(latM,lonM,masterPos-slavePos,theta+bearing),groundspeed=vmax)
+        slave.simple_goto(destinationPoint(latM,lonM,d,theta+bearing),groundspeed=vmax)
     else :
         print("SAFE STOP")
         if not first_stop :
             first_stop = True
      #       print("Let's go")
-            slave.simple_goto(destinationPoint(latM,lonM,masterPos-slavePos,theta+bearing),groundspeed=vmax)
+            slave.simple_goto(destinationPoint(latM,lonM,d,theta+bearing),groundspeed=vmax)
         else :
       #      print("HOLD")
             time.sleep(ts)
