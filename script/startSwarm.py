@@ -8,32 +8,34 @@ from math import *
 
 def failsafe():
     "Methode permettant de mettre en securité les buggys"
-    print("Deconnection")
+    print("Déconnection")
     slave.groundspeed = 0
     master.groundspeed = 0
     print("Groundspeed = 0")
     slave.mode = dronekit.VehicleMode("HOLD")
     master.mode = dronekit.VehicleMode("HOLD")
-    print("HOLD")
-#    slave.disarm()
-#    master.disarm()
-#    print("Disarm")
+    print("HOLD mode sur les deux drones")
     slave.close()
     master.close()
     print("Goodbye")
     
-def destinationPoint(lat_org,lon_org,d=2,teta=180):
+def destinationPoint(lat_org,lon_org,alt_org,d=2,teta=180,h=2):
     "Methode permettant de calculer une position gps a partir d'une position GPS d'une distance et d'un cap"
+    
     R=6371009
+    
     teta*=pi/180
     lat_org*=pi/180
     lon_org*=pi/180
+    
     lat = asin(sin(lat_org)*cos(d/R)+cos(lat_org)*sin(d/R)*cos(teta))
     lon = lon_org+atan2(sin(teta)*sin(d/R)*cos(lat_org),cos(d/R)-sin(lat_org)*sin(lat))
+    
     lat*=180/pi
     lon=((lon+540)%360-180)*180/pi
-    print("targeted: "+str(lat)+"  "+str(lon))
-    return dronekit.LocationGlobal(lat,lon,0)
+    alt = alt_org+h
+    #print("Destination: "+str(lat)+"  "+str(lon) +" at "+str(alt)+"m")
+    return dronekit.LocationGlobal(lat,lon,alt) #return a Location object
     
 def haversineDistance(lat1,lon1,lat2,lon2):
     "Haversine formula to calculate a distance"
@@ -48,7 +50,8 @@ def haversineDistance(lat1,lon1,lat2,lon2):
     
     a = sin(dlat/2)**2+cos(lat1)*cos(lat2)*(sin(dlon/2))**2
     d = 2 * R *asin(sqrt(a))
-    print("have: "+str(d))
+    print("Haversine distance: "+str(d))
+    
     #theta = atan2(cos(lat2)*sin(dlon),cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(dlon)
     #theta *= 180/pi
     return d
@@ -59,19 +62,22 @@ def controllerVit(dact,dobj,vmast):
     vmax=4
 
     if(rap<0 and rap>-0.05):
-        beta = 4*rap+1
+        beta = 4*abs(rap)+1
     elif(rap >= 0 and rap < 0.05):
         beta = 1
     elif(rap >= 0.05 and rap < 2.5):
-        beta = 0.2/245*rap-(244/255)
+        beta = 0.2/2.45*rap+(244/245)
     else:
-        beta = 0
+        beta = 0 #si on est trop loin ou trop proche on arrete le buggy
     
     vit=beta*vmast
     
     if(vit>vmax):
-       vit = vmax
-
+        print("Saturation!")
+        vit = vmax
+        
+    print("Corrected speed: "+vit)
+    
     return vit
     
 def controllerDis(dact,dobj):
@@ -82,89 +88,126 @@ def controllerDis(dact,dobj):
     elif(rap >= 0 and rap < 0.05):
         beta = 1
     elif(rap >= 0.05 and rap < 2.5):
-        beta = 0.5/245*rap-(244/255)
+        beta = 0.5/2.45*rap-(244/245)
     else:
-        beta = 1
+        beta = 1 #Si on est trop loin ou trop proche le buggy est arrété par le controleur en vitesse
+        
+    d=beta*dobj
     
-    return beta*dobj
+    print("Corrected distance: "+d)
+    
+    return d
     
 atexit.register(failsafe)
 
 print("Connection au slave....")
-slave = dronekit.connect("/dev/ttyUSB0",baud=56700)
+slave = dronekit.connect("/dev/ttyUSB0",baud=56700) #Le master est relié en utilisant une télémétrie sur un Port USB
 time.sleep(3)
-print("Slave: "+str(slave.version))
+if slave is not null:
+    print("Slave connecté: "+str(slave.version))
+else:
+    print("Slave non connecté, quit.")
+    sys.exit()
 
 print("Connection au master....")
-master = dronekit.connect("/dev/ttyACM0",baud=56700)
-time.sleep(5)
-print("Master: "+str(master.version))
+master = dronekit.connect("/dev/ttyACM0",baud=56700) #Le master est relié directement en USB
+time.sleep(3)
+if master is not null:
+    print("Master connecté: "+str(master.version))
+else:
+    print("Master non connecté, quit.")
+    sys.exit()
+
+print("On attend un peu pour tout récupérer.")
+time.sleep(2)
 
 rep = input("Armer le slave (Yes/No)")
 if(rep=="Y" or rep=="y"):
     slave.arm()
     slave.mode = dronekit.VehicleMode("HOLD")
+    print("Slave armé et en mode HOLD")
+    rep = input("SimpleTakeOff? (Alt or N)")
+    if(rep==N):
+        pass
+    else:
+        slave.mode = dronekit.VehicleMode("GUIDED")
+        slave.simple_takeoff(int(rep))
+        time.sleep(5)
     
 rep = input("Armer le master (Yes/No)")
 if(rep=="Y" or rep=="y"):
     master.arm()
     master.mode = dronekit.VehicleMode("MANUAL")
+    print("Master armé et en mode HOLD")
+    rep = input("SimpleTakeOff? (Alt or N)")
+    if(rep==N):
+        pass
+    else:
+        master.mode = dronekit.VehicleMode("GUIDED")
+        master.simple_takeoff(int(rep))
+        time.sleep(5)
     
 print("Slave: "+str(master.location.global_frame.lat)+" "+str(master.location.global_frame.lon)+" ")
 print("Master: "+str(master.location.global_frame.lat)+" "+str(master.location.global_frame.lon)+" ")
 
-#if(slave.gps_0.fix_type>2):
-#    master.mode = dronekit.VehicleMode("MANUAL")
-#    slave.mode = dronekit.VehicleMode("HOLD")
-#else:
-#    print("No 3D fix")
-#    sys.exit()
-
+#Définition de la position relative
 d=2
 theta=180
+h=2
+
+#Définition des paramètres d'échantillonage
 ts=0.2
-vmax=1.5
+
+#Initialisation des variables utilisées après.
 veloc = 0
 masterSpeed=[0,0,0]
 first_stop = False
 
+#Sécurité sur la précision du GPS, on attend au moins 17 satellites par drone avant de lancer le swarm
 while master.gps_0.satellites_visible < 17 or slave.gps_0.satellites_visible < 17 :
     print("Number of satellites unsatisfied : Master " 
         + str(master.gps_0.satellites_visible) + " - Slave "
         + str(slave.gps_0.satellites_visible))
     time.sleep(2)
 
+#Question bloquante avant de lancer le swarm
 input("Good satellites. Let's go ?")
+
 master.mode = dronekit.VehicleMode("MANUAL")
+
+print("Swarm started, d="+d+", theta="+theta+", h="+h)
 
 while 1:
     #print("Get info")
     latM=master.location.global_frame.lat
     lonM=master.location.global_frame.lon
+    altM=master.location.global_frame.alt
     
     latS = slave.location.global_frame.lat
     lonS = slave.location.global_frame.lon
+    altS = slave.location.global_frame.alt
     
     dact = haversineDistance(latM,lonM,latS,lonS)
     
     #print("Controller")
     bearing = master.heading
     vx,vy,vz = master.velocity
-    velocL = veloc
     veloc = sqrt(vx**2+vy**2+vz**2)
+    
     masterSpeed.pop()
     masterSpeed.insert(0,veloc)
+    
     #print("Velocity : " + str(veloc))
     if veloc > 0.5 :
         first_stop = False
-        print("Let's go")
         slave.mode = dronekit.VehicleMode("GUIDED")
         slave.groundspeed=controllerVit(dact,d,statistics.mean(masterSpeed))
-        targ = controllerDis(dact,d)
-        slave.simple_goto(destinationPoint(latM,lonM,targ,theta+bearing))
+        targPos = controllerDis(dact,d)
+        slave.simple_goto(destinationPoint(latM,lonM,altM,targPos,theta+bearing,h))
     else :
-        print("SAFE STOP")
+        
         if not first_stop :
+            print("SAFE STOP 1")
             first_stop = True
      #       print("Let's go")
             slave.groundspeed=controllerVit(dact,d,v_mast)

@@ -33,7 +33,7 @@ def destinationPoint(lat_org,lon_org,d=2,teta=180):
     lat*=180/pi
     lon=((lon+540)%360-180)*180/pi
     print("targeted: "+str(lat)+"  "+str(lon))
-    return dronekit.LocationGlobal(lat,lon,0)
+    return dronekit.LocationGlobal(lat,lon,0) #return a Location Object
     
 def haversineDistance(lat1,lon1,lat2,lon2):
     "Haversine formula to calculate a distance"
@@ -48,7 +48,8 @@ def haversineDistance(lat1,lon1,lat2,lon2):
     
     a = sin(dlat/2)**2+cos(lat1)*cos(lat2)*(sin(dlon/2))**2
     d = 2 * R *asin(sqrt(a))
-    print("have: "+str(d))
+    print("Haversine Distance Calculated: "+str(d))
+    
     #theta = atan2(cos(lat2)*sin(dlon),cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(dlon)
     #theta *= 180/pi
     return d
@@ -56,49 +57,63 @@ def haversineDistance(lat1,lon1,lat2,lon2):
 atexit.register(failsafe)
 
 print("Connection au slave....")
-slave = dronekit.connect("/dev/ttyUSB0",baud=56700)
+slave = dronekit.connect("/dev/ttyUSB0",baud=56700) #Le master est relié en utilisant une télémétrie sur un Port USB
 time.sleep(3)
-print("Slave: "+str(slave.version))
+if slave is not null:
+    print("Slave connecté: "+str(slave.version))
+else:
+    print("Slave non connecté, quit.")
+    sys.exit()
 
 print("Connection au master....")
-master = dronekit.connect("/dev/ttyACM0",baud=56700)
-time.sleep(5)
-print("Master: "+str(master.version))
+master = dronekit.connect("/dev/ttyACM0",baud=56700) #Le master est relié directement en USB
+time.sleep(3)
+if master is not null:
+    print("Master connecté: "+str(master.version))
+else:
+    print("Master non connecté, quit.")
+    sys.exit()
+
+print("On attend un peu pour tout récupérer.")
+time.sleep(2)
 
 rep = input("Armer le slave (Yes/No)")
 if(rep=="Y" or rep=="y"):
     slave.arm()
     slave.mode = dronekit.VehicleMode("HOLD")
+    print("Slave armé et en mode HOLD")
     
 rep = input("Armer le master (Yes/No)")
 if(rep=="Y" or rep=="y"):
     master.arm()
     master.mode = dronekit.VehicleMode("MANUAL")
+    print("Master armé et en mode HOLD")
     
-print("Slave: "+str(master.location.global_frame.lat)+" "+str(master.location.global_frame.lon)+" ")
-print("Master: "+str(master.location.global_frame.lat)+" "+str(master.location.global_frame.lon)+" ")
+#print("Slave: "+str(master.location.global_frame.lat)+" "+str(master.location.global_frame.lon)+" ")
+#print("Master: "+str(master.location.global_frame.lat)+" "+str(master.location.global_frame.lon)+" ")
 
-#if(slave.gps_0.fix_type>2):
-#    master.mode = dronekit.VehicleMode("MANUAL")
-#    slave.mode = dronekit.VehicleMode("HOLD")
-#else:
-#    print("No 3D fix")
-#    sys.exit()
-
+#Paramètre de controle de la position relative
 d=2
 theta=180
+
+#Paramètre de l'automatique
 ts=0.2
 vmax=1.5
+
+#Variable de fonctionnement
 veloc = 0
 first_stop = False
 
+#Sécurité sur la précision du GPS, on attend au moins 17 satellites par drone avant de lancer le swarm
 while master.gps_0.satellites_visible < 17 or slave.gps_0.satellites_visible < 17 :
     print("Number of satellites unsatisfied : Master " 
         + str(master.gps_0.satellites_visible) + " - Slave "
         + str(slave.gps_0.satellites_visible))
     time.sleep(2)
 
+#Question bloquante avant de lancer le swarm
 input("Good satellites. Let's go ?")
+
 master.mode = dronekit.VehicleMode("MANUAL")
 
 while 1:
