@@ -7,7 +7,7 @@
 \usepackage[top=20mm, bottom=20mm, left=10mm, right=10mm]{geometry}
 
 \usepackage{hyperref}
-
+\usepackage{multirow}
 \usepackage{mathpazo}
 \usepackage{xcolor}
 \definecolor{raspberry}{rgb}{0.737,0.067,0.259}
@@ -36,7 +36,7 @@
 \fancyhead[L]{Version du 26/09/2020,\\ modifié le \today}
 \fancyhead[C]{\textit{Premiers pas avec Raspberry Pi}}
 \fancyhead[R]{Swarm Drone Flight}
-\fancyfoot[L]{Florian Pouthier}
+\fancyfoot[L]{F. Pouthier - T. Drussel}
 \fancyfoot[R]{\jobname.pdf}
 \headheight = 15pt
 
@@ -320,6 +320,59 @@ pip3 install dronekit
 \begin{commandshell}
 git clone https://github.com/tristanplouz/ProjetSwarmRobotGE5.git
 \end{commandshell}
+	\item\textbf{Structure du projet}.
+		\begin{figure}[h]
+		\centering
+			\includegraphics[width=0.15\textwidth]{fig/arbor}
+		\end{figure}
+		Le dépot github est structuré comme présenté ci dessous. \\
+		
+		Chaque dossier contient différents éléments:
+		\begin{table}[h]
+		\centering
+			\begin{tabular}{c|l}
+			Script    & Les scripts principaux de contrôle             \\
+			ZDT       & Scripts de test divers et variés               \\
+			Tuto      & Sources Latex pour le présent tuto et d'autres \\
+			Webtest   & Test de serveur web pour le contrôle du swarm  \\
+			README.md & Readme                                        
+			\end{tabular}
+		\end{table}
+	\item\textbf{Prise en main de Dronekit}. Les exemples fournis sur le site de Dronekit sont utiles. Mais voici un petit récapitulatif des méthodes utiles.
+	% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+\begin{table}[]
+\begin{tabular}{lcllll}
+\multicolumn{4}{c}{\textbf{Méthode de dronekit}}                                                                                                                                                                                                                                                                          &                       &  \\ \cline{1-5}
+dronekit.connect(                         & Adresse                                                                                                             & \multicolumn{1}{c}{\textit{Baudrate}}                                                          & \multicolumn{1}{c}{\textit{Wait\_ready}}               & \multicolumn{1}{c}{)} &  \\
+retourne un droneKit Vehicle              & \multicolumn{1}{l}{\begin{tabular}[c]{@{}l@{}}Adresse de connection\\ "/dev/ttyUSBx" ou "/dev/ttyACM"\end{tabular}} & \begin{tabular}[c]{@{}l@{}}Vitesse de l'UART\\ 57600 pour une télem ou un Pixhawk\end{tabular} & Fonction bloquante ou non                              &                       &  \\ \cline{1-5}
+\multirow{2}{*}{vehicle.}                 & \multicolumn{2}{c}{arm()}                                                                                                                                                                                            & Arme le véhicule                                       &                       &  \\
+                                          & \multicolumn{2}{c}{disarm()}                                                                                                                                                                                         & Désarme le véhicule                                    &                       &  \\
+Return true ou false                      & \multicolumn{1}{l}{}                                                                                                &                                                                                                &                                                        &                       &  \\ \cline{1-5}
+vehicle.simple\_goto(                     & LocationGlobal,                                                                                                     & \multicolumn{1}{c}{\textit{airspeed,}}                                                         & \multicolumn{1}{c}{\textit{groundspeed,}}              &                       &  \\
+                                          & \multicolumn{1}{l}{Destination}                                                                                     & Vitesse en m/s                                                                                 & Vitesse en m/s                                         &                       &  \\ \cline{1-5}
+dronekit.LocationGlobal(                  & Lat                                                                                                                 & \multicolumn{1}{c}{Lon}                                                                        & \multicolumn{1}{c}{Alt}                                &                       &  \\
+Objet definissant une position 3D globale & \multicolumn{1}{l}{Latitude de la localisation}                                                                     & Longitude                                                                                      & Altitude                                               &                       &  \\ \cline{1-5}
+\end{tabular}
+\end{table} 
+\begin{table}[]
+\begin{tabular}{lcllll}
+\multicolumn{4}{c}{\textbf{Attribut d'un véhicule Dronekit}}                                                                                                                                                                                                                                                              &                       &  \\ \cline{1-5}
+\multirow{3}{*}{vehicle.}                 & \multirow{3}{*}{attitude.}                                                                                          & \multicolumn{1}{c}{pitch}                                                                      & \multirow{3}{*}{Attitude du véhicule crée précédement} &                       &  \\
+                                          &                                                                                                                     & \multicolumn{1}{c}{roll}                                                                       &                                                        &                       &  \\
+                                          &                                                                                                                     & \multicolumn{1}{c}{yaw}                                                                        &                                                        &                       &  \\ \cline{1-5}
+\multirow{3}{*}{vehicle.}                 & \multirow{3}{*}{location.global\_frame}                                                                             & \multicolumn{1}{c}{lat}                                                                        & \multirow{3}{*}{Global Localisation du vehicule}       &                       &  \\
+                                          &                                                                                                                     & \multicolumn{1}{c}{lon}                                                                        &                                                        &                       &  \\
+                                          &                                                                                                                     & \multicolumn{1}{c}{alt}                                                                        &                                                        &                       &  \\ \cline{1-5}
+\multirow{4}{*}{vehicle.}                 & \multicolumn{1}{l}{\multirow{4}{*}{mode=}}                                                                          & \multirow{4}{*}{dronekit.vehicleMode(}                                                         & "GUIDED"                                               & \multirow{4}{*}{)}    &  \\
+                                          & \multicolumn{1}{l}{}                                                                                                &                                                                                                & "MANUAL"                                               &                       &  \\
+                                          & \multicolumn{1}{l}{}                                                                                                &                                                                                                & "AUTO"                                                 &                       &  \\
+                                          & \multicolumn{1}{l}{}                                                                                                &                                                                                                & "HOLD"                                                 &                       &  \\ \cline{1-5}
+                                          & \multicolumn{1}{l}{}                                                                                                &                                                                                                &                                                        &                       & 
+\end{tabular}
+\end{table} 
+
 \end{enumerate}
+
 
 \end{document}

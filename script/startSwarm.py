@@ -127,7 +127,7 @@ if(rep=="Y" or rep=="y"):
     slave.mode = dronekit.VehicleMode("HOLD")
     print("Slave armé et en mode HOLD")
     rep = input("SimpleTakeOff? (Alt or N)")
-    if(rep==N):
+    if(rep=="N" or rep =="n"):
         pass
     else:
         slave.mode = dronekit.VehicleMode("GUIDED")
@@ -140,7 +140,7 @@ if(rep=="Y" or rep=="y"):
     master.mode = dronekit.VehicleMode("MANUAL")
     print("Master armé et en mode HOLD")
     rep = input("SimpleTakeOff? (Alt or N)")
-    if(rep==N):
+    if(rep=="N" or rep =="n"):
         pass
     else:
         master.mode = dronekit.VehicleMode("GUIDED")
@@ -159,9 +159,9 @@ h=2
 ts=0.2
 
 #Initialisation des variables utilisées après.
-veloc = 0
-masterSpeed=[0,0,0]
-first_stop = False
+veloc = 0 #vitesse instantannée du master
+masterSpeed=[0,0,0] #moyenne glissante de la vitesse du master
+first_stop = False 
 
 #Sécurité sur la précision du GPS, on attend au moins 17 satellites par drone avant de lancer le swarm
 while master.gps_0.satellites_visible < 17 or slave.gps_0.satellites_visible < 17 :
@@ -196,25 +196,42 @@ while 1:
     
     masterSpeed.pop()
     masterSpeed.insert(0,veloc)
-    
-    #print("Velocity : " + str(veloc))
-    if veloc > 0.5 :
-        first_stop = False
-        slave.mode = dronekit.VehicleMode("GUIDED")
-        slave.groundspeed=controllerVit(dact,d,statistics.mean(masterSpeed))
-        targPos = controllerDis(dact,d)
-        slave.simple_goto(destinationPoint(latM,lonM,altM,targPos,theta+bearing,h))
-    else :
-        
-        if not first_stop :
-            print("SAFE STOP 1")
-            first_stop = True
-     #       print("Let's go")
-            slave.groundspeed=controllerVit(dact,d,v_mast)
-            targ = controllerDis(dact,d)
-            slave.simple_goto(destinationPoint(latM,lonM,targ,theta+bearing))
+    velocMean = statistics.mean(masterSpeed)
+    if True:
+        if veloc > 0.5 :
+            first_stop = False
+            slave.mode = dronekit.VehicleMode("GUIDED") #Changement de Mode
+            slave.groundspeed=controllerVit(dact,d,velocMean) #Definition de la vitesse
+            slave.airspeed=controllerVit(dact,d,velocMean) #Definition de la vitesse
+            
+            targPos = controllerDis(dact,d)#Calcul de la distance corrigée
+            print("\r Velocity inst : " + str(veloc)+"(moyenne:"+velocMean+") "+str(dact)+"m actuellement, target "+targPos+"m",sep='', end='', flush=True)
+            
+            slave.simple_goto(destinationPoint(latM,lonM,altM,targPos,theta+bearing,h))#C'est parti
         else :
-      #      print("HOLD")
-            time.sleep(ts)
+            print("\r Velocity inst : " + str(veloc)+"(moyenne:"+velocMean+")",sep='', end='', flush=True)
+            if not first_stop :
+                print("Arrêt du master detecté")
+                first_stop = True
+         #       print("Let's go")
+                slave.groundspeed=controllerVit(dact,d,velocMean) #Definition de la vitesse
+                slave.airspeed=controllerVit(dact,d,velocMean) #Definition de la vitesse
+                targPos = controllerDis(dact,d)#Calcul de la distance corrigée
+                slave.simple_goto(destinationPoint(latM,lonM,altM,targPos,theta+bearing,h))#C'est parti
+            else :
+          #      print("HOLD")
+                time.sleep(ts)
+                slave.mode = dronekit.VehicleMode("HOLD")
+    else:
+        if statistics.mean(masterSpeed) > 0.5 :
+            slave.mode = dronekit.VehicleMode("GUIDED") #Changement de Mode
+            slave.groundspeed=controllerVit(dact,d,statistics.mean(masterSpeed)) #Definition de la vitesse
+            slave.airspeed=controllerVit(dact,d,statistics.mean(masterSpeed)) #Definition de la vitesse
+            
+            targPos = controllerDis(dact,d)#Calcul de la distance corrigée
+            print("\r Velocity inst : " + str(veloc)+"(moyenne:"+statistics.mean(masterSpeed)+") "+str(dact)+"m actuellement, target "+targPos+"m",sep='', end='', flush=True)            
+            slave.simple_goto(destinationPoint(latM,lonM,altM,targPos,theta+bearing,h))#C'est parti
+        else :
+            print("\r Arrêt du à un arrêt du master",sep='', end='', flush=True)
             slave.mode = dronekit.VehicleMode("HOLD")
     time.sleep(ts)
