@@ -201,11 +201,13 @@ while 1:
         if veloc > 0.5 :
             first_stop = False
             slave.mode = dronekit.VehicleMode("GUIDED") #Changement de Mode
-            slave.groundspeed=controllerVit(dact,d,velocMean) #Definition de la vitesse
-            slave.airspeed=controllerVit(dact,d,velocMean) #Definition de la vitesse
+            slaveSpeed=controllerVit(dact,d,velocMean)
+            slave.groundspeed=slaveSpeed #Definition de la vitesse
+            slave.airspeed=slaveSpeed #Definition de la vitesse
             
             targPos = controllerDis(dact,d)#Calcul de la distance corrigée
-            print("\r Velocity inst : " + str(veloc)+"(moyenne:"+velocMean+") "+str(dact)+"m actuellement, target "+targPos+"m",sep='', end='', flush=True)
+            print("\r Velocity inst : " + str(veloc)+"m/s (moyenne:"+velocMean+"m/s) ||"
+                +str(dact)+"m actuellement, target "+targPos+"m || SlaveSpeed: "+slaveSpeed+"m/s",sep='', end='', flush=True)
             
             slave.simple_goto(destinationPoint(latM,lonM,altM,targPos,theta+bearing,h))#C'est parti
         else :
