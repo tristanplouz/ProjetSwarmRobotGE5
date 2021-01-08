@@ -10,6 +10,7 @@ def failsafe():
     "Methode permettant de mettre en securité les buggys"
     print("Déconnection")
     slave.groundspeed = 0
+    slave.airspeed=0
     master.groundspeed = 0
     print("Groundspeed = 0")
     slave.mode = dronekit.VehicleMode("HOLD")
@@ -50,7 +51,7 @@ def haversineDistance(lat1,lon1,lat2,lon2):
     
     a = sin(dlat/2)**2+cos(lat1)*cos(lat2)*(sin(dlon/2))**2
     d = 2 * R *asin(sqrt(a))
-    print("Haversine distance: "+str(d))
+#    print("Haversine distance: "+str(d))
     
     #theta = atan2(cos(lat2)*sin(dlon),cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(dlon)
     #theta *= 180/pi
@@ -59,7 +60,7 @@ def haversineDistance(lat1,lon1,lat2,lon2):
 def controllerVit(dact,dobj,vmast):
     "Loopback system to control the system"
     rap = (dact-dobj)/dobj
-    vmax=4
+    vmax=1.5
 
     if(rap<0 and rap>-0.05):
         beta = 4*abs(rap)+1
@@ -76,7 +77,7 @@ def controllerVit(dact,dobj,vmast):
         print("Saturation!")
         vit = vmax
         
-    print("Corrected speed: "+vit)
+    #print("Corrected speed: "+vit)
     
     return vit
     
@@ -88,35 +89,35 @@ def controllerDis(dact,dobj):
     elif(rap >= 0 and rap < 0.05):
         beta = 1
     elif(rap >= 0.05 and rap < 2.5):
-        beta = 0.5/2.45*rap-(244/245)
+        beta = -0.5/2.45*rap+(2.475/2.45)
     else:
         beta = 1 #Si on est trop loin ou trop proche le buggy est arrété par le controleur en vitesse
         
     d=beta*dobj
     
-    print("Corrected distance: "+d)
+#    print("Corrected distance: "+d)
     
     return d
     
 atexit.register(failsafe)
 
 print("Connection au slave....")
-slave = dronekit.connect("/dev/ttyUSB0",baud=56700) #Le master est relié en utilisant une télémétrie sur un Port USB
-time.sleep(3)
-if slave is not null:
-    print("Slave connecté: "+str(slave.version))
-else:
-    print("Slave non connecté, quit.")
-    sys.exit()
+slave = dronekit.connect("/dev/ttyUSB0",baud=56700,wait_ready=False) #Le master est relié en utilisant une télémétrie sur un Port USB
+time.sleep(15)
+#if slave is not ull:
+print("Slave connecté: "+str(slave.version))
+#else:
+#    print("Slave non connecté, quit.")
+#    sys.exit()
 
 print("Connection au master....")
 master = dronekit.connect("/dev/ttyACM0",baud=56700) #Le master est relié directement en USB
 time.sleep(3)
-if master is not null:
-    print("Master connecté: "+str(master.version))
-else:
-    print("Master non connecté, quit.")
-    sys.exit()
+#if master is not null:
+print("Master connecté: "+str(master.version))
+#else:
+#    print("Master non connecté, quit.")
+#    sys.exit()
 
 print("On attend un peu pour tout récupérer.")
 time.sleep(2)
@@ -175,7 +176,7 @@ input("Good satellites. Let's go ?")
 
 master.mode = dronekit.VehicleMode("MANUAL")
 
-print("Swarm started, d="+d+", theta="+theta+", h="+h)
+print("Swarm started, d="+str(d)+", theta="+str(theta)+", h="+str(h))
 
 while 1:
     #print("Get info")
@@ -197,7 +198,8 @@ while 1:
     masterSpeed.pop()
     masterSpeed.insert(0,veloc)
     velocMean = statistics.mean(masterSpeed)
-    if True:
+    print(str(bearing)+" "+str((bearing+theta)%360))
+    if False:
         if veloc > 0.5 :
             first_stop = False
             slave.mode = dronekit.VehicleMode("GUIDED") #Changement de Mode
@@ -206,12 +208,12 @@ while 1:
             slave.airspeed=slaveSpeed #Definition de la vitesse
             
             targPos = controllerDis(dact,d)#Calcul de la distance corrigée
-            print("\r Velocity inst : " + str(veloc)+"m/s (moyenne:"+velocMean+"m/s) ||"
-                +str(dact)+"m actuellement, target "+targPos+"m || SlaveSpeed: "+slaveSpeed+"m/s",sep='', end='', flush=True)
+            print("\r Velocity inst : " + str(round(veloc,2))+"m/s (moyenne:"+str(round(velocMean,2))+"m/s) ||"
+                +str(round(dact,5))+"m actuellement, target "+str(round(targPos,5))+"m || SlaveSpeed: "+str(round(slaveSpeed,5))+"m/s",sep='', end='', flush=True)
             
-            slave.simple_goto(destinationPoint(latM,lonM,altM,targPos,theta+bearing,h))#C'est parti
+            slave.simple_goto(destinationPoint(latM,lonM,altM,targPos,(theta+bearing)%360,h)) #C'est parti
         else :
-            print("\r Velocity inst : " + str(veloc)+"(moyenne:"+velocMean+")",sep='', end='', flush=True)
+            print("\r Velocity inst : " + str(veloc)+"(moyenne:"+str(velocMean)+")\t\t\t\t\t\t\t\t",sep='', end='', flush=True)
             if not first_stop :
                 print("Arrêt du master detecté")
                 first_stop = True
@@ -225,15 +227,15 @@ while 1:
                 time.sleep(ts)
                 slave.mode = dronekit.VehicleMode("HOLD")
     else:
-        if velocMean > 0.5 :
+        if velocMean > 0.75 :
             slave.mode = dronekit.VehicleMode("GUIDED") #Changement de Mode
             slave.groundspeed=controllerVit(dact,d,velocMean) #Definition de la vitesse
             slave.airspeed=controllerVit(dact,d,velocMean) #Definition de la vitesse
             
-            targPos = controllerDis(dact,d)#Calcul de la distance corrigée
-            print("\r Velocity inst : " + str(veloc)+"(moyenne:"+velocMean+") "+str(dact)+"m actuellement, target "+targPos+"m",sep='', end='', flush=True)            
-            slave.simple_goto(destinationPoint(latM,lonM,altM,targPos,theta+bearing,h))#C'est parti
+            targPos = controllerDis(dact,d) #Calcul de la distance corrigée
+            print("Velocity inst : " + str(round(veloc,2))+"(moyenne:"+str(round(velocMean,2))+") "+str(round(dact,4))+"m actuellement, target "+str(round(targPos,4))+"m ",sep='', end='', flush=True)            
+            slave.simple_goto(destinationPoint(latM,lonM,altM,targPos,(theta+bearing)%360,h)) #C'est parti
         else :
-            print("\r Arrêt du à un arrêt du master",sep='', end='', flush=True)
+            print("Arrêt du à un arrêt du master",sep='', end='', flush=True)
             slave.mode = dronekit.VehicleMode("HOLD")
     time.sleep(ts)
