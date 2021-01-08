@@ -1,4 +1,4 @@
-import dronekit
+mport dronekit
 import time
 import sys
 import atexit
@@ -187,7 +187,7 @@ while 1:
     masterSpeed.insert(0,veloc)
     velocMean = statistics.mean(masterSpeed)
     
-    if velocMean > 0.55 :
+    if velocMean > 0.75 :
         slave.mode = dronekit.VehicleMode("GUIDED") #Changement de Mode
         slaveSpeed=controllerVit(dact,d,velocMean)
         slave.groundspeed = slaveSpeed #Definition de la vitesse
@@ -197,7 +197,7 @@ while 1:
         targetBearing = (bearing+theta)%360
         
         print("\r V_inst : " + str(round(veloc,2))+"m/s (mean:"+str(round(velocMean,2))+
-            "m/s)|SlvSpd "+str(round(slaveSpeed,3))+"m/s|"
+            "m/s)|SlvSpd "+str(round(slaveSpeed))+"m/s|"
             +str(round(dact,4))+"m, tgt:"+str(round(targPos,4))+"m|"+str(targetBearing),sep='', end='', flush=True)
         try:
             slave.simple_goto(destinationPoint(latM,lonM,altM,targPos,targetBearing,h)) #C'est parti
